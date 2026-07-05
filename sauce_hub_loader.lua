@@ -179,9 +179,18 @@ local function runGame(key)
         return
     end
 
-    local ok, src = pcall(function() return game:HttpGet(url) end)
-    if not ok or type(src) ~= "string" or #src < 8 then
-        notify(CONFIG.HUB_NAME, "Failed to fetch the game script.")
+    -- Executor HttpGet / GitHub CDN can flake on large files, so retry a few times.
+    local src
+    for attempt = 1, 4 do
+        local ok, res = pcall(function() return game:HttpGet(url) end)
+        if ok and type(res) == "string" and #res >= 8 then
+            src = res
+            break
+        end
+        task.wait(1)
+    end
+    if not src then
+        notify(CONFIG.HUB_NAME, "Failed to fetch the game script. Check your connection and retry.")
         return
     end
 
