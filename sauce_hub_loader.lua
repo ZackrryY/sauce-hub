@@ -25,6 +25,10 @@ local CONFIG = {
     -- Where a validated key is cached so users don't re-enter it.
     -- Still re-validated with jnkie every launch (HWID / expiry stay enforced).
     KEY_FILE          = "saucehub_key.txt",
+    -- Local record of when this key was first redeemed + KEY_HOURS, so the
+    -- in-script countdown has something to show (the jnkie API returns no expiry).
+    EXPIRY_FILE       = "saucehub_key_expiry.txt",
+    KEY_HOURS         = 24,
     MAX_ATTEMPTS      = 6,
 
     -- PlaceId -> raw GitHub URL of that game's script.
@@ -114,6 +118,25 @@ end
 
 local function clearKey()
     if delfile and isfile and isfile(CONFIG.KEY_FILE) then pcall(delfile, CONFIG.KEY_FILE) end
+    if delfile and isfile and isfile(CONFIG.EXPIRY_FILE) then pcall(delfile, CONFIG.EXPIRY_FILE) end
+end
+
+-- Expiry is stored locally as a unix timestamp (os.time based) the first time a
+-- key is redeemed. jnkie never sends one back, so this is our best estimate for
+-- the countdown; it self-heals to now+KEY_HOURS if the file is ever missing.
+local function readExpiry()
+    if isfile and readfile and isfile(CONFIG.EXPIRY_FILE) then
+        local ok, data = pcall(readfile, CONFIG.EXPIRY_FILE)
+        if ok then
+            local n = tonumber((tostring(data):gsub("%s", "")))
+            if n then return n end
+        end
+    end
+    return nil
+end
+
+local function writeExpiry(ts)
+    if writefile then pcall(writefile, CONFIG.EXPIRY_FILE, tostring(ts)) end
 end
 
 local function getHWID()
@@ -175,6 +198,7 @@ Junkie.provider   = CONFIG.JUNKIE_PROVIDER
 --==============================================================
 local function runGame(key)
     getgenv().SCRIPT_KEY = key -- exposed in case a game script wants it
+    getgenv().SCRIPT_KEY_EXPIRES = readExpiry() -- unix ts for the in-script countdown
 
     local url = CONFIG.SCRIPTS[game.PlaceId]
     if not url then
@@ -216,6 +240,8 @@ local saved = readKey()
 if saved and saved ~= "" then
     local ok, res = pcall(Junkie.check_key, saved)
     if ok and type(res) == "table" and res.valid then
+        -- Legacy keys saved before countdowns existed have no expiry file; seed one.
+        if not readExpiry() then writeExpiry(os.time() + CONFIG.KEY_HOURS * 3600) end
         runGame(saved)
         return
     else
@@ -494,6 +520,9 @@ local function doRedeem()
 
         if res.valid then
             writeKey(key)
+            -- Fresh redeem only happens when no valid cached key existed, so start
+            -- a clean 24h window now.
+            writeExpiry(os.time() + CONFIG.KEY_HOURS * 3600)
             setStatus("Key valid! Loading...", T.success)
             task.wait(0.4)
             screenGui:Destroy()
