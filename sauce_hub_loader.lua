@@ -240,7 +240,7 @@ screenGui.IgnoreGuiInset = true
 screenGui.Parent = parent
 
 local main = Instance.new("Frame")
-main.Size = UDim2.new(0, 440, 0, 300)
+main.Size = UDim2.new(0, 440, 0, 276)
 main.Position = UDim2.new(0.5, 0, 0.5, 0)
 main.AnchorPoint = Vector2.new(0.5, 0.5)
 main.BackgroundColor3 = T.background
@@ -329,24 +329,10 @@ desc.Font = Enum.Font.Gotham
 desc.ZIndex = 10001
 desc.Parent = main
 
--- HWID line
-local hwidLabel = Instance.new("TextLabel")
-hwidLabel.Size = UDim2.new(1, -40, 0, 16)
-hwidLabel.Position = UDim2.new(0, 20, 0, 96)
-hwidLabel.BackgroundTransparency = 1
-hwidLabel.Text = "HWID: " .. getHWID()
-hwidLabel.TextColor3 = T.textMuted
-hwidLabel.TextXAlignment = Enum.TextXAlignment.Left
-hwidLabel.TextTruncate = Enum.TextTruncate.AtEnd
-hwidLabel.TextSize = 11
-hwidLabel.Font = Enum.Font.Gotham
-hwidLabel.ZIndex = 10001
-hwidLabel.Parent = main
-
 -- Key input
 local keyBox = Instance.new("TextBox")
 keyBox.Size = UDim2.new(1, -40, 0, 42)
-keyBox.Position = UDim2.new(0, 20, 0, 120)
+keyBox.Position = UDim2.new(0, 20, 0, 96)
 keyBox.BackgroundColor3 = T.inputBg
 keyBox.Text = ""
 keyBox.PlaceholderText = "Paste your key here"
@@ -363,7 +349,7 @@ stroke(keyBox, T.accentDim, 1)
 -- Status line
 local status = Instance.new("TextLabel")
 status.Size = UDim2.new(1, -40, 0, 20)
-status.Position = UDim2.new(0, 20, 0, 170)
+status.Position = UDim2.new(0, 20, 0, 146)
 status.BackgroundTransparency = 1
 status.Text = "Waiting for your key..."
 status.TextColor3 = T.textMuted
@@ -406,14 +392,14 @@ end
 -- One combined provider (work.ink + lootlabs in its checkpoint flow), so a single
 -- Get Key button is all we need, beside Redeem.
 local getKeyBtn = makeButton("Get Key",
-    UDim2.new(0, 20, 0, 200), UDim2.new(0.5, -26, 0, 42), T.accentDim)
+    UDim2.new(0, 20, 0, 176), UDim2.new(0.5, -26, 0, 42), T.accentDim)
 local redeemBtn = makeButton("Redeem",
-    UDim2.new(0.5, 6, 0, 200), UDim2.new(0.5, -26, 0, 42), T.accent)
+    UDim2.new(0.5, 6, 0, 176), UDim2.new(0.5, -26, 0, 42), T.accent)
 
 -- Footer / attempts
 local footer = Instance.new("TextLabel")
 footer.Size = UDim2.new(1, -40, 0, 16)
-footer.Position = UDim2.new(0, 20, 0, 252)
+footer.Position = UDim2.new(0, 20, 0, 228)
 footer.BackgroundTransparency = 1
 footer.Text = "SAUCEHUB - key bound to your HWID"
 footer.TextColor3 = T.textMuted
