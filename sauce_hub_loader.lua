@@ -17,7 +17,10 @@ local CONFIG = {
     -- jnkie dashboard values (SAUCEHUB service, work.ink provider)
     JUNKIE_SERVICE    = "SAUCEHUB",
     JUNKIE_IDENTIFIER = "1145232",
-    JUNKIE_PROVIDER   = "SAUCEHUB KEY",
+    -- Must match the provider NAME exactly as it appears on the jnkie dashboard
+    -- (GET /api/v2/providers). "SAUCEHUB KEY" 404'd - the real work.ink provider
+    -- is named "SAUCEHUB WORK.INK KEY". (The lootlabs one is "SAUCEHUB LOOTLABS KEY".)
+    JUNKIE_PROVIDER   = "SAUCEHUB WORK.INK KEY",
 
     -- Where a validated key is cached so users don't re-enter it.
     -- Still re-validated with jnkie every launch (HWID / expiry stay enforced).
@@ -449,12 +452,20 @@ end
 getKeyBtn.MouseButton1Click:Connect(function()
     setStatus("Fetching your key link...", T.warning)
     task.spawn(function()
-        local ok, link = pcall(Junkie.get_key_link)
+        -- get_key_link returns (link, errReason); keep the reason so a failure is
+        -- never opaque (a wrong provider name reads as "Provider not found", etc).
+        local ok, link, reason = pcall(Junkie.get_key_link)
         if ok and type(link) == "string" and #link > 0 then
             clip(link)
             setStatus("Link copied! Complete it, then paste your key.", T.success)
         else
-            setStatus("Couldn't get a link. Wait a minute and retry.", T.danger)
+            local why = (type(link) == "string" and link)
+                or (type(reason) == "string" and reason)
+                or (not ok and tostring(link)) or "no link"
+            if type(why) == "string" and why:find("429") then
+                why = "rate limited, wait a minute"
+            end
+            setStatus("Get Key failed: " .. tostring(why):sub(1, 60), T.danger)
         end
     end)
 end)
